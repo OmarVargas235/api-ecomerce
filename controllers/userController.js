@@ -106,3 +106,32 @@ module.exports.messageClient = async (req, res, next) => {
 		});
 	}
 }
+
+// =====================================
+// Mensaje de la cuenta cuando a sido activada
+// =====================================
+module.exports.messageClient = async (req, res, next) => {
+	
+	if (Object.keys(errorsMessageClient).length === 0) return next();
+
+	if (errorsMessageClient.accountNotExists) {
+
+		errorsMessageClient = {};
+
+		return res.status(500).json({
+			empty: false,
+			ok: false,
+			messages: ['No se ah podido activar la cuenta, vuelvalo intentar'],
+		});
+	
+	} else if (errorsMessageClient.accountExists) {
+
+		errorsMessageClient = {};
+
+		return res.status(500).json({
+			empty: false,
+			ok: true,
+			messages: ['Cuenta activada'],
+		});
+	}
+}
