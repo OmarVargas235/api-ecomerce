@@ -1,0 +1,29 @@
+  {
+  "name": "api-ecomerce",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "nodemon": "nodemon index.js",
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "express-fileupload": "^1.2.1",
+    "express-validator": "^6.10.0",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.12.2",
+    "nodemailer": "^6.5.0",
+    "shortid": "^2.2.16",
+    "socket.io": "^3.1.2",
+    "socketio-file-upload": "^0.7.3"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  }
+}
