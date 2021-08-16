@@ -4,8 +4,8 @@ const userController = require('../controllers/userController');
 const resetPasswordController = require('../controllers/resetPasswordController');
 const authController = require('../controllers/authController');
 const productController = require('../controllers/productController');
-const userController = require('../controllers/userController');
 const messageController = require('../controllers/messageController');
+const ordersController = require('../controllers/ordersController');
 const { validateEditUser } = require('../middleware/validateEditUser');
 const { 
 	validateFormRegister,
@@ -126,7 +126,7 @@ module.exports = () => {
 		auth,
 		userController.changeRolUser,
 	);
-
+	
 	// Crear producto
 	router.post('/create-product',
 		verifyToken,
@@ -278,6 +278,20 @@ module.exports = () => {
 	// Obtener las imagenes del mensaje del chat
 	router.get('/get-images/:id',
 		messageController.getImagesChat,
+	);
+
+	// Obtener ordenes por id de usuario
+	router.get('/get-orders/:id',
+		verifyToken,
+		auth,
+		ordersController.getOrdersId,
+	);
+
+	// Obtener ordenes por id de usuario
+	router.get('/get-orders',
+		verifyToken,
+		auth,
+		ordersController.getOrders,
 	);
 
 	return router;
