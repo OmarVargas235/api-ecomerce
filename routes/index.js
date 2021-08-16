@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
 const resetPasswordController = require('../controllers/resetPasswordController');
+const authController = require('../controllers/authController');
+const productController = require('../controllers/productController');
 const userController = require('../controllers/userController');
 const { validateEditUser } = require('../middleware/validateEditUser');
 const { 
@@ -9,8 +11,12 @@ const {
 	validateFormLogin,
 	validateFormSendChangePassword,
 	validateFormChangePassword,
+	validateSearch,
 } = require('../middleware/validations');
-const authController = require('../controllers/authController');
+const {
+	validateProduct,
+	validateNumber,
+} = require('../middleware/validationsProduct');
 const { verifyToken, auth } = require('../middleware/verifyToken');
 
 module.exports = () => {
@@ -118,6 +124,92 @@ module.exports = () => {
 		verifyToken,
 		auth,
 		userController.changeRolUser,
+	);
+
+	// Crear producto
+	router.post('/create-product',
+		verifyToken,
+		auth,
+		validateProduct,
+		validateNumber,
+		productController.selectImages,
+		productController.createProduct,
+	);
+
+	// Editar producto
+	router.post('/edit-product/:id',
+		verifyToken,
+		auth,
+		validateProduct,
+		validateNumber,
+		productController.selectImagesEdit,
+		productController.editProduct,
+	);
+	
+	// Eliminar producto
+	router.delete('/delete-product',
+		verifyToken,
+		auth,
+		productController.deleteProduct,
+	);
+	
+	// Obtener todos los productos
+	router.get('/get-all-products',
+		productController.getAllProducts,
+	);
+
+	// Obtener todos los productos del usuario
+	router.get('/get-products/:id',
+		productController.getProducts,
+	);
+
+	// Obtener producto
+	router.get('/get-product/:id',
+		productController.getProduct,
+	);
+	
+	// Obtener producto por busqueda
+	router.post('/search-product',
+		validateSearch,
+		productController.searchProduct,
+	);
+
+	// Agregar a favoritos
+	router.post('/add-favorite-product/:id',
+		verifyToken,
+		auth,
+		productController.addFavoriteProduct,
+	);
+	
+	// Eliminar de favoritos
+	router.delete('/delete-favorite-product/:id',
+		verifyToken,
+		auth,
+		productController.deleteFavoriteProduct,
+	);
+
+	// Obtener productos de favoritos
+	router.get('/get-favorite-product/:id',
+		verifyToken,
+		auth,
+		productController.getFavoriteProduct,
+	);
+
+	// Guardar coordenadas del producto
+	router.post('/save-coordinates',
+		productController.coordinates,
+	);
+
+	// Obtener los productos seleccionados por categoria
+	router.post('/get-products-category',
+		productController.getProductsSelectedController,
+	);
+
+	// Disminuir el stock del producto por la compra del mismo
+	router.post('/buy-product/:id',
+		verifyToken,
+		auth,
+		productController.buyProduct,
 	);
 
 	return router;
