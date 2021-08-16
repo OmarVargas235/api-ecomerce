@@ -2,6 +2,7 @@ const Product = require('../models/product');
 const Comment = require('../models/commentProduct');
 const User = require('../models/user');
 const Orders = require('../models/orders');
+const ProductHome = require('../models/productsHome');
 const path = require('path');
 const fs = require('fs');
 const { uploadsImages } = require('../helper/uploadImg');
@@ -500,6 +501,110 @@ module.exports.buyProduct = async (req, res) => {
 		
 		console.log(err);
 
+		return res.status(500).json({
+			ok: false,
+			messages: ['Ah ocurrido un error'],
+		});
+	}
+}
+
+// =====================================
+// Guardar productos del home (pagina principal)
+// =====================================
+module.exports.productsHome = async (req, res) => {
+	
+	try {
+		
+		const { product, isExists, text } = req.body;
+		const getProduct = JSON.parse(product);
+		const productsHomeBD = await ProductHome.find();
+
+		if (text === 'Quitar del home') {
+
+			const deleteProduct = productsHomeBD.find(product => product['_id']==getProduct['_id']);
+
+			deleteProduct && await ProductHome.findByIdAndRemove(deleteProduct['_id']);
+
+			return res.status(200).json({
+				ok: deleteProduct ? true : false,
+				messages: deleteProduct
+				? ['El producto se elimino del home correctamente']
+				: ['Este producto no esta agregado al home'],
+			});
+		}
+		
+		// Si el producto ya esta en el home no lo agrega
+		if ( JSON.parse(isExists) ) return res.status(200).json({
+			ok: true,
+			messages: ['Este producto ya sido agregado al home'],
+			isExistsBD: true,
+		});
+		
+		// Agregar al home
+		const productHome = new ProductHome(getProduct);
+
+		await productHome.save();
+
+		return res.status(200).json({
+			ok: true,
+			messages: ['El producto se a agregado al home correctamente'],
+		});
+
+	} catch(err) {
+		
+		console.log(err);
+
+		return res.status(500).json({
+			ok: false,
+			messages: ['Ah ocurrido un error'],
+		});
+	}
+}
+
+// =====================================
+// Obtener todos productos del home (pagina principal)
+// =====================================
+module.exports.getProductsHome = async (req, res) => {
+	
+	try {
+
+		const productHomeBD = await ProductHome.find({}, {__v:0,idUser:0,ratingsProduct:0,stock:0});
+
+		return res.status(200).json({
+			ok: true,
+			messages: productHomeBD,
+		});
+
+	} catch(err) {
+		
+		console.log(err);
+
+		return res.status(500).json({
+			ok: false,
+			messages: ['Ah ocurrido un error'],
+		});
+	}
+}
+
+// =====================================
+// Eliminar producto del home (pagina principal)
+// =====================================
+module.exports.deleteProductHome = async (req, res) => {
+	
+	try {
+
+		const { id } = req.body;
+		
+		await ProductHome.findByIdAndRemove(id);
+
+		return res.status(200).json({
+			ok: true,
+		});
+
+	} catch(err) {
+		
+		console.log(err);
+		
 		return res.status(500).json({
 			ok: false,
 			messages: ['Ah ocurrido un error'],

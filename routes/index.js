@@ -212,5 +212,22 @@ module.exports = () => {
 		productController.buyProduct,
 	);
 
+	// Guardar productos del home (pagina principal)
+	router.post('/products-home',
+		verifyToken,
+		auth,
+		productController.productsHome,
+	);
+
+	// Obtener todos productos del home (pagina principal)
+	router.get('/get-products-home',
+		productController.getProductsHome,
+	);
+
+	// Eliminar producto del home (pagina principal)
+	router.delete('/delete-product-home',
+		productController.deleteProductHome,
+	);
+
 	return router;
 }
