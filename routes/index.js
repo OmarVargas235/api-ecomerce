@@ -5,6 +5,7 @@ const resetPasswordController = require('../controllers/resetPasswordController'
 const authController = require('../controllers/authController');
 const productController = require('../controllers/productController');
 const userController = require('../controllers/userController');
+const messageController = require('../controllers/messageController');
 const { validateEditUser } = require('../middleware/validateEditUser');
 const { 
 	validateFormRegister,
@@ -227,6 +228,56 @@ module.exports = () => {
 	// Eliminar producto del home (pagina principal)
 	router.delete('/delete-product-home',
 		productController.deleteProductHome,
+	);
+
+	// Obtener mensajes
+	router.get('/get-messages/:id',
+		messageController.getMessage,
+	);
+
+	// Obtener historial de chat de un usuario en concreto
+	router.get('/get-record-users/:id',
+		verifyToken,
+		auth,
+		messageController.getRecordMessage,
+	);
+
+	// Guardar el historial del chat
+	router.post('/records-chat/:id',
+		messageController.saveRecordsChat,
+	);
+
+	// Bloquear usuario
+	router.post('/users-blocked/:id',
+		verifyToken,
+		auth,
+		messageController.usersBlocked,
+	);
+
+	// Obtener usuarios bloqueados
+	router.get('/get-idBlockeds/:id',
+		verifyToken,
+		auth,
+		messageController.getUsersBlocked,
+	);
+
+	// Eliminar chat del historial de chats
+	router.delete('/delete-chat/:id',
+		verifyToken,
+		auth,
+		messageController.deleteChat,
+	);
+
+	// Guardar imagenes en el mensaje del chat
+	router.post('/upload-images',
+		verifyToken,
+		auth,
+		messageController.uploadImagesChat,
+	);
+
+	// Obtener las imagenes del mensaje del chat
+	router.get('/get-images/:id',
+		messageController.getImagesChat,
 	);
 
 	return router;
