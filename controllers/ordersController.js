@@ -34,10 +34,10 @@ module.exports.getOrders = async (req, res) => {
 	try {
 
 		const ordersBD = await Orders.find().sort({ 'date': -1 });
-
+		
 		return res.status(200).json({
 			ok: true,
-			messages: ordersBD.length === 0 ? ['No hay ordenes'] : ordersBD,
+			messages: ordersBD.length === 0 ? 'No hay ordenes' : ordersBD,
 		});
 
 	} catch(err) {
