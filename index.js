@@ -7,12 +7,20 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const fileUpload = require('express-fileupload');
 const socketIO = require('socket.io');
+const cloudinary = require('cloudinary');
 const http = require('http');
 const Socket = require('./sockets/sockets');
 const routes = require('./routes/');
 
 // crear el servidor
 const app = express();
+
+// Configurar cloudinary
+cloudinary.config({
+	cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+	api_key: process.env.CLOUDINARY_API_KEY,
+	api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // Habilitar los fileUpload
 app.use( fileUpload() );

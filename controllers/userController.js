@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const shortid = require('shortid');
 const path = require('path');
 const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
 const { sendEmail } = require('../config/mailer');
 const { selectedSocialMedias } = require('../helper/user');
 let errorsMessageClient = {};
@@ -229,13 +230,17 @@ module.exports.uploadImg = async (req, res) => {
 	
 	// Si la carpeta de "public/upload/profile" no existe la crea
 	if ( !fs.existsSync(uploads) ) fs.mkdirSync('public/uploads/profile', {recursive:true});
+	
+	const pathImagePrev = path.resolve(__dirname, `../public/uploads/profile/${userBD.img.nameFile}`);
+	const pathImageCurrent = `${uploads}/${nameFile}`;
 
-	const pathImage = path.resolve(__dirname, `../public/uploads/profile/${userBD.img}`);
+	// Eliminar imagen anterior de cloudinary
+	cloudinary.uploader.destroy(userBD.img.id);
 
-	// Elimina la imagen actual
-	if ( fs.existsSync(pathImage) ) fs.unlinkSync(pathImage);
+	// Elimina la imagen anterior
+	if ( fs.existsSync(pathImagePrev) ) fs.unlinkSync(pathImagePrev);
 
-	file.mv(`${uploads}/${nameFile}`, async function(err) {
+	file.mv(pathImageCurrent, async function(err) {
 
 	    if (err) {
 
@@ -244,15 +249,29 @@ module.exports.uploadImg = async (req, res) => {
 				messages: [err]
 			});
 	    }
-		
-	    userBD.img = nameFile;
-	    await userBD.save();
 
-	    return res.status(200).json({
-			ok: true,
-			messages: ['Imagen subida correctamente'],
-		});
-  	});	
+	    try {
+
+			const result = await cloudinary.uploader.upload(pathImageCurrent);
+
+		    userBD.img = {url: result.url, id: result.public_id, nameFile};
+		    await userBD.save();
+
+		    return res.status(200).json({
+				ok: true,
+				messages: ['Imagen subida correctamente'],
+			});
+
+	    } catch (error) {
+
+	    	console.log('subir imagen de perfil', error);
+
+	    	return res.status(200).json({
+				ok: true,
+				messages: ['AAh ocurrido un error'],
+			});
+	    }		
+  	});
 }
 
 // =====================================

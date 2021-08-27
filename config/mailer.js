@@ -42,7 +42,7 @@ const transport = nodemailer.createTransport({
 	secure: true,
 	auth: {
 		user: 'omarpruebas0@gmail.com',
-		pass: 'tcgaljxptxfmokal',
+		pass: process.env.MAILER,
 	},
 });
 
