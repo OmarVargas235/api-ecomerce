@@ -5,12 +5,12 @@ const Orders = require('../models/orders');
 const ProductHome = require('../models/productsHome');
 const path = require('path');
 const fs = require('fs');
+const { saveCloudinary, deleteCloudinary } = require('../helper/cloudinary');
 const { uploadsImages } = require('../helper/uploadImg');
 
 // =====================================
 // Crear producto
 // =====================================
-
 module.exports.selectImages = async (req, res, next) => {
 	
 	// Verificar que se hallan enviado alguna imagen
@@ -35,31 +35,50 @@ module.exports.selectImages = async (req, res, next) => {
 	next();
 }
 
-module.exports.createProduct = async (req, res) => {
+module.exports.createProduct = (req, res) => {
 
-	try {
+	setTimeout(async () => {
+
+		try {
+			
+			const { categories, ...body } = req.body;
+			
+			const arrImages = [];
+			const productBD = new Product(body);
+			productBD.idUser = body.id;
+			productBD.categories = categories.split(',');
+
+			// Agregar imagenes a cloudinary
+			req.images.forEach(async path => {
+
+				const { pathImage, nameFile } = path;
+	    		const result = await saveCloudinary(pathImage, productBD, nameFile, 'images', res);
+
+	    		arrImages.push( {url: result.url, id: result.public_id, nameFile} );
+
+	    		if (arrImages.length === req.images.length) {
+
+	    			productBD.images = arrImages;
+					await productBD.save();
+	    		}
+			});
+
+			// await productBD.save();
+
+			// return res.status(200).json({
+			// 	ok: true,
+			// 	messages: ['Producto creado correctamente'],
+			// });
+
+		} catch {
+
+			return res.status(500).json({
+				ok: false,
+				messages: ['Ah ocurrido un error'],
+			});
+		}
 		
-		const { categories, ...body } = req.body;
-		
-		const product = new Product(body);
-		product.idUser = body.id;
-		product.images = req.images;
-		product.categories = categories.split(',');
-
-		await product.save();
-
-		return res.status(200).json({
-			ok: true,
-			messages: ['Producto creado correctamente'],
-		});
-
-	} catch {
-
-		return res.status(500).json({
-			ok: false,
-			messages: ['Ah ocurrido un error'],
-		});
-	}
+	}, 300);
 }
 
 // =====================================

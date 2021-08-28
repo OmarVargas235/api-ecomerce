@@ -4,9 +4,9 @@ const bcrypt = require('bcrypt');
 const shortid = require('shortid');
 const path = require('path');
 const fs = require('fs');
-const cloudinary = require('cloudinary').v2;
 const { sendEmail } = require('../config/mailer');
 const { selectedSocialMedias } = require('../helper/user');
+const { saveCloudinary, deleteCloudinary } = require('../helper/cloudinary');
 let errorsMessageClient = {};
 
 module.exports.createUser = async (req, res) => {
@@ -226,7 +226,7 @@ module.exports.uploadImg = async (req, res) => {
 	const userBD = await User.findById(req.body.id);
 
 	// Path de la carpeta publica donde se guardan las imagenes
-	const uploads = path.resolve(__dirname, `../public/uploads/profile`);
+	const uploads = path.resolve(__dirname, '../public/uploads/profile');
 	
 	// Si la carpeta de "public/upload/profile" no existe la crea
 	if ( !fs.existsSync(uploads) ) fs.mkdirSync('public/uploads/profile', {recursive:true});
@@ -234,11 +234,15 @@ module.exports.uploadImg = async (req, res) => {
 	const pathImagePrev = path.resolve(__dirname, `../public/uploads/profile/${userBD.img.nameFile}`);
 	const pathImageCurrent = `${uploads}/${nameFile}`;
 
-	// Eliminar imagen anterior de cloudinary
-	cloudinary.uploader.destroy(userBD.img.id);
 
 	// Elimina la imagen anterior
-	if ( fs.existsSync(pathImagePrev) ) fs.unlinkSync(pathImagePrev);
+	if ( fs.existsSync(pathImagePrev) ) {
+
+		fs.unlinkSync(pathImagePrev);
+
+		// Eliminar imagen de cloudinary
+		deleteCloudinary(userBD.img.id);
+	}
 
 	file.mv(pathImageCurrent, async function(err) {
 
@@ -250,27 +254,8 @@ module.exports.uploadImg = async (req, res) => {
 			});
 	    }
 
-	    try {
-
-			const result = await cloudinary.uploader.upload(pathImageCurrent);
-
-		    userBD.img = {url: result.url, id: result.public_id, nameFile};
-		    await userBD.save();
-
-		    return res.status(200).json({
-				ok: true,
-				messages: ['Imagen subida correctamente'],
-			});
-
-	    } catch (error) {
-
-	    	console.log('subir imagen de perfil', error);
-
-	    	return res.status(200).json({
-				ok: true,
-				messages: ['AAh ocurrido un error'],
-			});
-	    }		
+	    // Agregar imagen a cloudinary
+	    saveCloudinary(pathImageCurrent, userBD, nameFile, 'img', res);
   	});
 }
 

@@ -38,20 +38,21 @@ module.exports.uploadsImages = (files, res, options) => {
 	// Si la carpeta de "public/upload/products" no existe la crea
 	if ( !fs.existsSync(uploads) ) fs.mkdirSync(options.createFile, {recursive:true});
 	
-	files.forEach((file, index) => {
+	const pathImages = files.map((file, index) => {
 		
 		const nameFile = namesFiles[index];
+		const pathImageCurrent = `${uploads}/${nameFile}`;
 
-		file.mv(`${uploads}/${nameFile}`, async function(err) {
+		file.mv(pathImageCurrent, function(err) {
 
-		    if (err){
-		      	return res.status(500).json({
-					ok: false,
-					messages: [err]
-				});
-		    }
+		    if (err) return res.status(500).json({
+				ok: false,
+				messages: [err]
+			});
 	  	});
+
+	  	return {pathImage: pathImageCurrent, nameFile: namesFiles[index]};
 	});
 
-	return namesFiles;
+	return pathImages;
 }
