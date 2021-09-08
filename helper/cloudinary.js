@@ -11,7 +11,7 @@ module.exports.saveCloudinary = async (pathImageCurrent, dataBD, nameFile, typeP
 		    dataBD[typeProp] = {url: result.url, id: result.public_id, nameFile};
 		    await dataBD.save();
 		    
-		    return res.status(200).json({
+		    res.status(200).json({
 				ok: true,
 				messages: ['Imagen subida correctamente'],
 			});
@@ -28,6 +28,8 @@ module.exports.saveCloudinary = async (pathImageCurrent, dataBD, nameFile, typeP
 			messages: ['AAh ocurrido un error'],
 		});
     }
+
+    return true;
 }
 
 module.exports.deleteCloudinary = async id => {
