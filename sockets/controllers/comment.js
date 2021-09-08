@@ -46,7 +46,6 @@ module.exports.addComment = async data => {
 // =====================================
 // Obtener comentarios del producto
 // =====================================
-
 module.exports.getComments = async id => {
 
 	try {
@@ -72,10 +71,10 @@ module.exports.getComments = async id => {
 // =====================================
 // Editar comnetario
 // =====================================
-
 module.exports.editComment = async data => {
 	
 	const { id, comment, idProduct } = data;
+
 	const update = {
 		date: Date.now(),
 		comment
@@ -83,8 +82,13 @@ module.exports.editComment = async data => {
 		
 	try {
 		
-		await Comment.findByIdAndUpdate(id, update, false);
-		const commnets = await Comment.find({idProduct}, {__v:0}).sort({ date: -1 });
+		const commnets = comment
+		? await Comment.find({idProduct}, {__v:0}).sort({ date: -1 })
+		: await Comment.find({idUser: data.idUser}, {__v:0}).sort({ date: -1 });
+		
+		comment
+		? await Comment.findByIdAndUpdate(id, update, false)
+		: await Comment.updateMany({idUser: data.idUser}, {$set: {img: data.result} });
 
 		return {
 			ok: true,

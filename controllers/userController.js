@@ -1,5 +1,6 @@
 const User = require('../models/user');
 const Notifications = require('../models/notifications');
+const Comment = require('../models/commentProduct');
 const bcrypt = require('bcrypt');
 const shortid = require('shortid');
 const path = require('path');
@@ -246,7 +247,6 @@ module.exports.uploadImg = async (req, res) => {
 
 		// Eliminar imagen de cloudinary
 		const result = deleteCloudinary(userBD.img.id);
-		console.log(result);
 	}
 
 	file.mv(pathImageCurrent, async function(err) {
@@ -264,6 +264,9 @@ module.exports.uploadImg = async (req, res) => {
 
 		// Actualizando imagen del usuario en las notificaciones
 		await Notifications.updateMany({ of: idUser }, { $set: {img: result.url} });
+
+		// Actualizando imagen del usuario en los comentarios
+		await Comment.updateMany({ idUser }, { $set: {img: result.url} });
   	});
 }
 

@@ -6,12 +6,12 @@ const { Schema } = mongoose;
 const messageChatSchema = new Schema({
 	of: {
         type: Schema.Types.ObjectId,
-        ref: 'usuario',
+        ref: 'user',
         required: true
     },
     for: {
         type: Schema.Types.ObjectId,
-        ref: 'usuario',
+        ref: 'user',
         required: true
     },
     message: String,
