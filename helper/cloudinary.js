@@ -25,7 +25,7 @@ module.exports.saveCloudinary = async (pathImageCurrent, dataBD, nameFile, typeP
 
     	return res.status(404).json({
 			ok: false,
-			messages: ['AAh ocurrido un error'],
+			messages: ['Ah ocurrido un error'],
 		});
     }
 

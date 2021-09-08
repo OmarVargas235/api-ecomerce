@@ -26,14 +26,14 @@ process.env.MAILER = process.env.MAILER;
 // =====================================
 // Cloudinary nombre
 // =====================================
-process.env.CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || 'dpwmtiqbn';
+process.env.CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
 
 // =====================================
 // Cloudinary key
 // =====================================
-process.env.CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY || '857543854452749';
+process.env.CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY;
 
 // =====================================
 // Cloudinary key ssecret
 // =====================================
-process.env.CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET || '0zv9CbvaEReMOSY1hCbWQu_bkz0';
+process.env.CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;

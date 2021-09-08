@@ -55,7 +55,7 @@ module.exports.createProduct = (req, res) => {
 	    		const result = await saveCloudinary(pathImage, productBD, nameFile, 'images', res);
 
 	    		arrImages.push( {url: result.url, id: result.public_id, nameFile} );
-
+	    		
 	    		if (arrImages.length === req.images.length) {
 
 	    			productBD.images = arrImages;
@@ -63,12 +63,12 @@ module.exports.createProduct = (req, res) => {
 	    		}
 			});
 
-			// await productBD.save();
+			await productBD.save();
 
-			// return res.status(200).json({
-			// 	ok: true,
-			// 	messages: ['Producto creado correctamente'],
-			// });
+			return res.status(200).json({
+				ok: true,
+				messages: ['Producto creado correctamente'],
+			});
 
 		} catch {
 
@@ -213,24 +213,65 @@ module.exports.editProduct = async (req, res) => {
 
 	try {
 		
-		const { id } = req.params;
+		const { id:idProduct } = req.params;
 		const { categories, ...body } = req.body;
-		const { images } = await Product.findById(id);
+		const { images } = await Product.findById(idProduct);
+
+		const arrImages = [];
 
 		const update = {
 			...body,
-			images: req.images ? req.images : images,
 			categories: categories.split(','),
 		}
-		
-		await Product.findByIdAndUpdate(id, update, false);
-			
+
+		if (req.images) {
+
+			images.forEach(({ id, nameFile }) => {
+
+				const pathImage = path.resolve(__dirname, `../public/uploads/products/${nameFile}`);
+
+				// Elimina la imagen actual
+				if ( fs.existsSync(pathImage) ) {
+
+					fs.unlinkSync(pathImage);
+					deleteCloudinary(id);
+				}
+			});
+
+			setTimeout(() => {
+
+				req.images.forEach(async ({ id, nameFile }) => {
+
+					const pathImage = path.resolve(__dirname, `../public/uploads/products/${nameFile}`);
+
+					const result = await saveCloudinary(pathImage, {}, nameFile, 'images', res);
+
+					arrImages.push( {url: result.url, id: result.public_id, nameFile} );
+	    		
+		    		if (arrImages.length === req.images.length) {
+
+						update.images = arrImages;
+						await Product.findByIdAndUpdate(idProduct, update, false);
+						await ProductHome.findByIdAndUpdate(idProduct, update, false);
+	    			}
+				});
+
+			}, 300);
+
+			update.images = [];	
+		}
+
+		await Product.findByIdAndUpdate(idProduct, update, false);
+		await ProductHome.findByIdAndUpdate(idProduct, update, false);
+
 		return res.status(200).json({
 			ok: true,
 			messages: ['Se a editado el producto correctamente'],
 		});
 
 	} catch(err) {
+
+		console.log('editProduct', err);
 
 		return res.status(500).json({
 			ok: false,
@@ -256,12 +297,16 @@ module.exports.deleteProduct = async (req, res) => {
 			messages: ['Este producto no existe'],
 		});
 
-		productBD.images.forEach(img => {
+		productBD.images.forEach(({ id, nameFile }) => {
 
-			const pathImage = path.resolve(__dirname, `../public/uploads/products/${img}`);
+			const pathImage = path.resolve(__dirname, `../public/uploads/products/${nameFile}`);
 
 			// Elimina la imagen actual
-			if ( fs.existsSync(pathImage) ) fs.unlinkSync(pathImage);
+			if ( fs.existsSync(pathImage) ) {
+
+				fs.unlinkSync(pathImage);
+				deleteCloudinary(id);
+			}
 		});
 			
 		return res.status(200).json({
@@ -269,8 +314,10 @@ module.exports.deleteProduct = async (req, res) => {
 			messages: ['Se a eliminado el producto correctamente'],
 		});
 
-	} catch {
+	} catch(err) {
 		
+		console.log('deleteProduct', err);
+
 		return res.status(500).json({
 			ok: false,
 			messages: ['Ah ocurrido un error'],
@@ -398,13 +445,31 @@ module.exports.getFavoriteProduct = async (req, res) => {
 		const { id } = req.params;
 		const userBD = await User.findById(id);
 
+		if (userBD.favoritesProducts.length === 0) return;
+
+		// recorrer los productos agregados a favoritos
+		userBD.favoritesProducts.forEach(async favorite => {
+
+			const { idProduct, product } = favorite;
+
+			// Si no hay imagenes en el producto agregado a favoritos las agrega
+			if (product.images.length === 0) {
+
+				const productBD = await Product.findById(idProduct);
+				product.images = productBD.images;	
+				await User.findByIdAndUpdate(id, userBD);
+			}
+		});
+
 		return res.status(200).json({
 			ok: true,
 			messages: userBD.favoritesProducts,
 		});
 
-	} catch {
+	} catch(err) {
 		
+		console.log('error getFavoriteProduct', err);
+
 		return res.status(500).json({
 			ok: false,
 			messages: ['Ah ocurrido un error'],
@@ -489,7 +554,7 @@ module.exports.buyProduct = async (req, res) => {
 			const { _id:id, name, price, images, cont, user } = product;
 
 			// Crear ordenes
-			const orders = new Orders({name, price, image: images[0], amount: cont, idUser});
+			const orders = new Orders({name, price, image: images[0].url, amount: cont, idUser});
 			await orders.save();
 
 			// Agregar las ventas del producto al usuario
@@ -518,7 +583,7 @@ module.exports.buyProduct = async (req, res) => {
 
 	} catch(err) {
 		
-		console.log(err);
+		console.log("buyProduct", err);
 
 		return res.status(500).json({
 			ok: false,
@@ -536,6 +601,7 @@ module.exports.productsHome = async (req, res) => {
 		
 		const { product, isExists, text } = req.body;
 		const getProduct = JSON.parse(product);
+		console.log(getProduct);
 		const productsHomeBD = await ProductHome.find();
 
 		if (text === 'Quitar del home') {

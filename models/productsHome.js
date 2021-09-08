@@ -28,6 +28,7 @@ const { Schema } = mongoose;
 	},
 	ratingsProduct: [Object],
 	idUser: { type: Schema.Types.ObjectId, ref: 'user' },
+	idProduct: { type: Schema.Types.ObjectId, ref: 'product' },
 });
 
 module.exports = mongoose.model('productHome', productHomeSchema);
