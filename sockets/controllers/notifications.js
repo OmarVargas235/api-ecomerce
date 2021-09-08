@@ -5,17 +5,12 @@ module.exports.saveNotifications = async (payload) => {
 
 	try {
 		
-		const notifications = new Notifications( payload );
-		const user = await User.findOne({ _id: payload['for'] }, {__v:0});
+		const { img, ...obj } = payload;
+		obj.img = img.url || '';
 		
-		if (!user) return {
-			ok: false,
-			messages: ['Este producto a sido eliminado'],
-		};
+		const notifications = new Notifications( obj );
 
-		user.notifications.push(notifications);
 		await notifications.save();
-		await user.save();
 
 		return true;
 

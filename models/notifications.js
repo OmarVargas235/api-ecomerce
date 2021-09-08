@@ -6,12 +6,12 @@ const { Schema } = mongoose;
 const notificationsSchema = new Schema({
 	of: {
         type: Schema.Types.ObjectId,
-        ref: 'usuario',
+        ref: 'user',
         required: true
     },
     for: {
         type: Schema.Types.ObjectId,
-        ref: 'usuario',
+        ref: 'user',
         required: true
     },
     nameRemitter: {
@@ -33,8 +33,11 @@ const notificationsSchema = new Schema({
         type: Date,
         default: Date.now
     },
+    url: { 
+        type: String,
+        default: '',
+    },
     img: String,
-    url: String,
 });
 
 notificationsSchema.method('toJSON', function() {

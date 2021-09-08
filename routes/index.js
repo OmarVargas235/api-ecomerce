@@ -102,7 +102,7 @@ module.exports = () => {
 	);
 
 	// Marcar como visto la notificacion
-	router.post('/view-notification/:id',
+	router.get('/view-notification/:id',
 		verifyToken,
 		auth,
 		userController.viewNotifications,

@@ -52,6 +52,8 @@ module.exports.createUser = async (req, res) => {
 	
 	} catch (error) {
 		
+		console.log("registrar usuario", error);
+
 		res.status(500).json({
 			ok: false,
 			messages: ['A ocurrido un error'],
@@ -195,6 +197,8 @@ module.exports.editUser = async (req, res) => {
 
 module.exports.uploadImg = async (req, res) => {
 	
+	const { idUser } = req.body;
+
 	// Verificar que se hallan enviado alguna imagen
 	if (!req.files) {
 		
@@ -223,7 +227,7 @@ module.exports.uploadImg = async (req, res) => {
 
 	// Cambiar nombre al archivo
 	const nameFile = `${name}-${shortid.generate()}.${extension}`;
-	const userBD = await User.findById(req.body.id);
+	const userBD = await User.findById(idUser);
 
 	// Path de la carpeta publica donde se guardan las imagenes
 	const uploads = path.resolve(__dirname, '../public/uploads/profile');
@@ -231,9 +235,9 @@ module.exports.uploadImg = async (req, res) => {
 	// Si la carpeta de "public/upload/profile" no existe la crea
 	if ( !fs.existsSync(uploads) ) fs.mkdirSync('public/uploads/profile', {recursive:true});
 	
-	const pathImagePrev = path.resolve(__dirname, `../public/uploads/profile/${userBD.img.nameFile}`);
+	const isImgUseBD = userBD.img ? userBD.img.nameFile : nameFile;
+	const pathImagePrev = path.resolve(__dirname, `../public/uploads/profile/${isImgUseBD}`);
 	const pathImageCurrent = `${uploads}/${nameFile}`;
-
 
 	// Elimina la imagen anterior
 	if ( fs.existsSync(pathImagePrev) ) {
@@ -241,7 +245,8 @@ module.exports.uploadImg = async (req, res) => {
 		fs.unlinkSync(pathImagePrev);
 
 		// Eliminar imagen de cloudinary
-		deleteCloudinary(userBD.img.id);
+		const result = deleteCloudinary(userBD.img.id);
+		console.log(result);
 	}
 
 	file.mv(pathImageCurrent, async function(err) {
@@ -253,9 +258,12 @@ module.exports.uploadImg = async (req, res) => {
 				messages: [err]
 			});
 	    }
-
+	    
 	    // Agregar imagen a cloudinary
-	    saveCloudinary(pathImageCurrent, userBD, nameFile, 'img', res);
+		const result = await saveCloudinary(pathImageCurrent, userBD, nameFile, 'img', res);
+
+		// Actualizando imagen del usuario en las notificaciones
+		await Notifications.updateMany({ of: idUser }, { $set: {img: result.url} });
   	});
 }
 
@@ -267,14 +275,16 @@ module.exports.getNotifications = async (req, res) => {
 	try {
 		
 		const { id } = req.params;
-		const userBD = await User.findById(id);
+		const notificationsBD = await Notifications.find({ for: id });
 
 		return res.status(200).json({
 			ok: true,
-			messages: userBD.notifications,
+			messages: notificationsBD,
 		});
 
-	} catch {
+	} catch(err) {
+
+		console.log('getNotifications', err);
 		
 		return res.status(500).json({
 			ok: false,
@@ -291,15 +301,14 @@ module.exports.viewNotifications = async (req, res) => {
 	try {
 		
 		const { id } = req.params;
-		const { notifications } = req.body;
-		const userBD = await User.findById(id);
 
-		userBD.notifications = JSON.parse(notifications);
-		await userBD.save();
+		await Notifications.updateMany(
+			{ $or: [{ _id: id }, { for: id }] },
+			{ $set: {view: false} }
+		);
 
 		return res.status(200).json({
 			ok: true,
-			messages: userBD.notifications,
 		});
 
 	} catch(err) {
@@ -321,15 +330,10 @@ module.exports.deleteNotifications = async (req, res) => {
 	try {
 		
 		const { id } = req.params;
-		const userBD = await User.findById(id);
-		const notificationsBD = await Notifications.deleteMany({ for: id });
-
-		userBD.notifications = [];
-		await userBD.save();
+		await Notifications.deleteMany({ for: id });
 
 		return res.status(200).json({
 			ok: true,
-			messages: userBD.notifications,
 		});
 
 	} catch(err) {

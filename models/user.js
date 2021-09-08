@@ -50,7 +50,6 @@ const userSchema = new Schema({
 		default: false,
 	},
 	img: Object,
-	notifications: Array,
 	recordsChat: Array,
 	usersBloked: [String],
 	favoritesProducts: [Object],
