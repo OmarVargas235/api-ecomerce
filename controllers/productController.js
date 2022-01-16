@@ -601,7 +601,7 @@ module.exports.productsHome = async (req, res) => {
 		
 		const { product, isExists, text } = req.body;
 		const getProduct = JSON.parse(product);
-		console.log(getProduct);
+		
 		const productsHomeBD = await ProductHome.find();
 
 		if (text === 'Quitar del home') {

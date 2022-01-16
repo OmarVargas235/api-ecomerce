@@ -46,9 +46,7 @@ const transport = nodemailer.createTransport({
 	},
 });
 
-exports.sendEmail = async options => {
-	
-	let promise;
+exports.sendEmail = options => {
 
 	const optionsEmail = {
 		from: 'ecomerce <noreply@ecomerce.com',
@@ -57,7 +55,7 @@ exports.sendEmail = async options => {
 		html: options.changePassword ? templete(options.resetUrl) : templeteConfirmEmail(options.resetUrl),
 	}
 
-	await transport.sendMail(optionsEmail, async function(err, data) {
+	transport.sendMail(optionsEmail, async function(err, data) {
 
 		if (err) {
 			
