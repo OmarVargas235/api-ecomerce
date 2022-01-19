@@ -81,14 +81,14 @@ module.exports.editComment = async data => {
 	}
 		
 	try {
+
+		comment
+		? await Comment.findByIdAndUpdate(id, update, false)
+		: await Comment.updateMany({idUser: data.idUser}, {$set: {img: data.result} });
 		
 		const commnets = comment
 		? await Comment.find({idProduct}, {__v:0}).sort({ date: -1 })
 		: await Comment.find({idUser: data.idUser}, {__v:0}).sort({ date: -1 });
-		
-		comment
-		? await Comment.findByIdAndUpdate(id, update, false)
-		: await Comment.updateMany({idUser: data.idUser}, {$set: {img: data.result} });
 
 		return {
 			ok: true,
